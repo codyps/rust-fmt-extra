@@ -1,0 +1,5 @@
+[package]
+
+name = "fmt-extra"
+version = "0.0.1"
+authors = ["Cody P Schafer <dev@codyps.com>"]
