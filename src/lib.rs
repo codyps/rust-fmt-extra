@@ -1,17 +1,17 @@
 use std::fmt;
-use std::fmt::Show;
+use std::ops::Deref;
 
-struct SingleQuotedStr<'a> {
+pub struct SingleQuotedStr<'a> {
     s: &'a str
 }
 
 impl<'b> SingleQuotedStr<'b> {
-    fn new<'a>(i: &'a str) -> SingleQuotedStr<'a> {
+    pub fn new<'a>(i: &'a str) -> SingleQuotedStr<'a> {
         SingleQuotedStr { s: i }
     }
 }
 
-impl<'a> Show for SingleQuotedStr<'a> {
+impl<'a> fmt::Display for SingleQuotedStr<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut elems = self.s.split('\'');
         let fst = elems.next().unwrap_or("");
@@ -23,13 +23,44 @@ impl<'a> Show for SingleQuotedStr<'a> {
     }
 }
 
-impl<'a> Deref<str> for SingleQuotedStr<'a> {
-    fn deref<'b>(&'b self) -> &'b str {
+impl<'a> Deref for SingleQuotedStr<'a> {
+    type Target = str;
+    fn deref<'b>(&'b self) -> &'b Self::Target {
         self.s
     }
 }
 
+pub struct Seperated<'a, D: fmt::Display, X: fmt::Display, I: Iterator<Item=X>> {
+    sep: D,
+    inner: &'a Fn() -> I,
+}
+
+impl<'a, D: fmt::Display, X: fmt::Display, I: Iterator<Item=X>> fmt::Display for Seperated<'a, D, X, I> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for ref i in (self.inner)() {
+            try!(write!(f, "{}{}", i, self.sep));
+        }
+
+        Ok(())
+    }
+}
+
+impl<'a, D: fmt::Display, X: fmt::Display, I: Iterator<Item=X>> Seperated<'a, D, X, I> {
+    pub fn new(sep: D, inner: &'a Fn() -> I) -> Self {
+        Seperated { sep: sep, inner: inner }
+    }
+}
+
+
 #[test]
-fn it_works() {
-    assert_eq!(format!("{}", SingleQuotedStr::new("'")).as_slice(), "''\\'''");
+fn test_sqs() {
+    assert_eq!(format!("{}", SingleQuotedStr::new("'")), "''\\'''");
+    assert_eq!(format!("{}", SingleQuotedStr::new("a")), "'a'");
+}
+
+#[test]
+fn test_sep() {
+    let x = [1, 2, 3];
+    // FIXME: figure out how to use a literal
+    assert_eq!(format!("{}", Seperated::new(' ', &|| x.iter())), "1 2 3 ");
 }
