@@ -93,6 +93,49 @@ impl<T> DerefMut for Hs<T> {
     }
 }
 
+/// A wrapper around anything that dereferences to a byte slice (`[u8]`) that displays it's
+/// contents as a string using rust-like (& c-like) escapes for non ascii characters
+#[derive(Clone, PartialEq, Eq)]
+pub struct AsciiStr<T>(pub T);
+
+impl<T: AsRef<[u8]>> fmt::Display for AsciiStr<T> {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        let v = self.0.as_ref();
+        for e in v {
+            match *e {
+                0x20...0x7E => try!(write!(fmt, "{}", *e as char)),
+                _ => try!(write!(fmt, "\\x{:02x}", e))
+            }
+        }
+        Ok(())
+    }
+}
+
+impl<T: AsRef<[u8]>> fmt::Debug for AsciiStr<T> {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(fmt, "{}", self)
+    }
+}
+
+impl<T> Deref for AsciiStr<T> {
+    type Target = T;
+    fn deref(&self) -> &Self::Target
+    {
+        &self.0
+    }
+}
+
+impl<T> DerefMut for AsciiStr<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+#[test]
+fn test_asciistr() {
+    assert_eq!(format!("{}", AsciiStr(&b"hello\x88"[..])), "hello\\x88");
+}
+
 #[test]
 fn test_hs() {
     assert_eq!(format!("{}", Hs(&b"hello"[..])), "68656c6c6f");
@@ -110,3 +153,5 @@ fn test_sep() {
     // FIXME: figure out how to use a literal
     assert_eq!(format!("{}", Seperated::new(' ', &|| x.iter())), "1 2 3 ");
 }
+
+
