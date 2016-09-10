@@ -64,16 +64,17 @@ impl<'a, D: fmt::Display, X: fmt::Display, I: IntoIterator<Item=X> + 'a> Seperat
 #[derive(Clone, PartialEq, Eq)]
 pub struct Hs<T>(pub T);
 
-impl<T: Deref<Target=[u8]>> fmt::Display for Hs<T> {
+impl<T: AsRef<[u8]>> fmt::Display for Hs<T> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        for e in &self.0[..] {
+        let v = self.0.as_ref();
+        for e in v {
             try!(write!(fmt, "{:02x}", e));
         }
         Ok(())
     }
 }
 
-impl<T: Deref<Target=[u8]>> fmt::Debug for Hs<T> {
+impl<T: AsRef<[u8]>> fmt::Debug for Hs<T> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         write!(fmt, "{}", self)
     }
@@ -146,6 +147,8 @@ fn test_asciistr() {
 #[test]
 fn test_hs() {
     assert_eq!(format!("{}", Hs(&b"hello"[..])), "68656c6c6f");
+    let b: &[u8;3] = b"ab\xEB";
+    assert_eq!(format!("{}", Hs(b)), "6162eb");
 }
 
 #[test]
