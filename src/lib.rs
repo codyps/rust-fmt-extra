@@ -95,18 +95,24 @@ impl<T> DerefMut for Hs<T> {
 
 /// A wrapper around anything that dereferences to a byte slice (`[u8]`) that displays it's
 /// contents as a string using rust-like (& c-like) escapes for non ascii characters
+///
+/// The entire thing is wrapped in double quotes (") and any interior double quotes are escaped as
+/// '\"'
 #[derive(Clone, PartialEq, Eq)]
 pub struct AsciiStr<T>(pub T);
 
 impl<T: AsRef<[u8]>> fmt::Display for AsciiStr<T> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         let v = self.0.as_ref();
+        try!(write!(fmt, "\""));
         for e in v {
             match *e {
+                b'"' => try!(write!(fmt, "\\\"")),
                 0x20...0x7E => try!(write!(fmt, "{}", *e as char)),
                 _ => try!(write!(fmt, "\\x{:02x}", e))
             }
         }
+        try!(write!(fmt, "\""));
         Ok(())
     }
 }
@@ -133,7 +139,8 @@ impl<T> DerefMut for AsciiStr<T> {
 
 #[test]
 fn test_asciistr() {
-    assert_eq!(format!("{}", AsciiStr(&b"hello\x88"[..])), "hello\\x88");
+    assert_eq!(format!("{}", AsciiStr(&b"hello\x88"[..])), "\"hello\\x88\"");
+    assert_eq!(format!("{}", AsciiStr(&b"hello\"\x88"[..])), "\"hello\\\"\\x88\"");
 }
 
 #[test]
