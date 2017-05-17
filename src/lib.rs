@@ -28,6 +28,7 @@ impl<'a> fmt::Display for SingleQuotedStr<'a> {
 
 impl<'a> Deref for SingleQuotedStr<'a> {
     type Target = str;
+    #[inline]
     fn deref(&self) -> &Self::Target {
         self.s
     }
@@ -82,6 +83,7 @@ impl<T: AsRef<[u8]>> fmt::Debug for Hs<T> {
 
 impl<T> Deref for Hs<T> {
     type Target = T;
+    #[inline]
     fn deref(&self) -> &Self::Target
     {
         &self.0
@@ -89,6 +91,7 @@ impl<T> Deref for Hs<T> {
 }
 
 impl<T> DerefMut for Hs<T> {
+    #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
@@ -126,6 +129,7 @@ impl<T: AsRef<[u8]>> fmt::Debug for AsciiStr<T> {
 
 impl<T> Deref for AsciiStr<T> {
     type Target = T;
+    #[inline]
     fn deref(&self) -> &Self::Target
     {
         &self.0
@@ -133,6 +137,7 @@ impl<T> Deref for AsciiStr<T> {
 }
 
 impl<T> DerefMut for AsciiStr<T> {
+    #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
