@@ -34,6 +34,57 @@ impl<'a> Deref for SingleQuotedStr<'a> {
     }
 }
 
+/// Given a [u8] (bytes) display it as c-style source string with escapes
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct CSrcStr<'a> {
+    d: &'a [u8]
+}
+
+impl<'b> From<&'b [u8]> for CSrcStr<'b> {
+    fn from(d: &[u8]) -> CSrcStr {
+        CSrcStr { d: d }
+    }
+}
+
+impl<'a> fmt::Display for CSrcStr<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for i in self.d {
+            match *i as char {
+                'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'l'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z'|
+                'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'I'|'J'|'K'|'L'|'M'|'N'|'O'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|
+                '~'|'!'|'@'|'#'|'$'|'%'|'^'|'&'|'*'|'('|')'|'_'|'+'|
+                '0'|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|
+                '`'|
+                '-'| '=' | '{' | '}' | '|' | '\\' |
+                '['| ']' | ':' | ';' | '\''|
+                '<'| '>' | ',' | '.' | '?' | '/'
+                => {
+                    write!(f, "{}", *i as char)?;
+                },
+                '"' => {
+                    write!(f, "\\\"")?;  
+                },
+                '\n' => {
+                    write!(f, "\\n")?;
+                }
+                _ => {
+                    write!(f, "\\x{:02x}", *i)?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl<'a> Deref for CSrcStr<'a> {
+    type Target = [u8];
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        self.d
+    }
+}
+
 /// Display a given iterator over display-ables using by printing each display-able 1 display-able
 /// seperator.
 ///
