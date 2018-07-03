@@ -1,6 +1,6 @@
 [package]
 name = "fmt-extra"
-version = "0.2.0"
+version = "0.2.1"
 description = "Extra formaters not shipped in the standard library"
 license = "Apache-2.0 OR MIT"
 authors = ["Cody P Schafer <dev@codyps.com>"]
